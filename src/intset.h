@@ -32,20 +32,23 @@
 #define __INTSET_H
 #include <stdint.h>
 
+// 有序整数集合
+// WARNING：每次add和remove都会触发内存relloc，感觉很费
+
 typedef struct intset {
-    uint32_t encoding;
-    uint32_t length;
+    uint32_t encoding;          // 当前集合的编码格式，例如INT16, INT32, INT64，可以理解为每个元素的大小
+    uint32_t length;            // 当前长度
     int8_t contents[];
 } intset;
 
-intset *intsetNew(void);
-intset *intsetAdd(intset *is, int64_t value, uint8_t *success);
-intset *intsetRemove(intset *is, int64_t value, int *success);
-uint8_t intsetFind(intset *is, int64_t value);
-int64_t intsetRandom(intset *is);
-uint8_t intsetGet(intset *is, uint32_t pos, int64_t *value);
-uint32_t intsetLen(intset *is);
-size_t intsetBlobLen(intset *is);
+intset *intsetNew(void);        // 创建一个空的intset，长度为0，encode为INT32
+intset *intsetAdd(intset *is, int64_t value, uint8_t *success);     // 插入一个元素，如果value比原来编码大，就会扩大原来的编码
+intset *intsetRemove(intset *is, int64_t value, int *success);      // 移除一个元素
+uint8_t intsetFind(intset *is, int64_t value);                      // 查找一个元素，找不到返回0，找到返回1
+int64_t intsetRandom(intset *is);                                   // 从set中随机取一个元素，如果当前没有元素返回0
+uint8_t intsetGet(intset *is, uint32_t pos, int64_t *value);        // 从指定位置中取一个元素，如果pos在范围内，返回1，否则返回0
+uint32_t intsetLen(intset *is);                                     // 返回当前set的长度
+size_t intsetBlobLen(intset *is);                                   // 返回当前set的内存占用空间大小，单位Byte
 
 #ifdef REDIS_TEST
 int intsetTest(int argc, char *argv[]);
