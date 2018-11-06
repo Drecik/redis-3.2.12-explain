@@ -32,20 +32,22 @@
 #define __INTSET_H
 #include <stdint.h>
 
-// 有序整数集合
-// WARNING：每次add和remove都会触发内存relloc，感觉很费
+/*
+- 有序整数集合，使用连续内存存储，所以每次插入和删除都会触发内存的重新分配
+- 适合数量较小的时候，插入和删除不频繁的时候使用，不太影响效率的同时节省内存，同时可以利用它的有序性进行高效的查找
+*/
 
 typedef struct intset {
     uint32_t encoding;          // 当前集合的编码格式，例如INT16, INT32, INT64，可以理解为每个元素的大小
-    uint32_t length;            // 当前长度
+    uint32_t length;            // set长度
     int8_t contents[];
 } intset;
 
-intset *intsetNew(void);        // 创建一个空的intset，长度为0，encode为INT32
+intset *intsetNew(void);        // 创建一个空的intset，长度为0，encode为INT16
 intset *intsetAdd(intset *is, int64_t value, uint8_t *success);     // 插入一个元素，如果value比原来编码大，就会扩大原来的编码
 intset *intsetRemove(intset *is, int64_t value, int *success);      // 移除一个元素
 uint8_t intsetFind(intset *is, int64_t value);                      // 查找一个元素，找不到返回0，找到返回1
-int64_t intsetRandom(intset *is);                                   // 从set中随机取一个元素，如果当前没有元素返回0
+int64_t intsetRandom(intset *is);                                   // 从set中随机取一个元素，如果length为0，会导致宕机
 uint8_t intsetGet(intset *is, uint32_t pos, int64_t *value);        // 从指定位置中取一个元素，如果pos在范围内，返回1，否则返回0
 uint32_t intsetLen(intset *is);                                     // 返回当前set的长度
 size_t intsetBlobLen(intset *is);                                   // 返回当前set的内存占用空间大小，单位Byte

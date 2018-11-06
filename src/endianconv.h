@@ -36,6 +36,9 @@
 #include "config.h"
 #include <stdint.h>
 
+// 为了兼容不同操作系统的内存模型，提供大小端操作的助手函数
+// 这样数据落地后迁移到不同的操作系统也可以正确恢复
+
 void memrev16(void *p);
 void memrev32(void *p);
 void memrev64(void *p);

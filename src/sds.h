@@ -39,15 +39,16 @@
 #include <stdarg.h>
 #include <stdint.h>
 
-// redis字符串是一个任何时候都以'\0'结束，并且可以兼容二进制的字符串
-// 实现方式是在实际操作的字符串指针前面有一个描述该字符串信息的header
-// 为了节约内存，redis按照字符串长度，会使用不同的header结构体来存放信息
-// 这些结构体分别为sdshdr5, sdshdr8, sdshdr16, sdshdr32, sdshdr64，后面的数字即为该结构体能存放的字符串长度二进制位数
-// 例如，sdshdr8表示该结构体能容纳2^8-1长度的字符串
-// 如果需要知道该字符串使用的header是什么类型，则只需要获取指针之前一位的flags，因为所有header结构buf前面一个字段都为flags
-// 从flags知道是什么类型的header之后，就可以根据header长度，获取到指向header的指针进行操作
-// 除了sdshdr5外，其他类型都有相似的变量，len表示实际字符串长度，alloc表示实际分配的长度
-// sdshdr5不会预先分配长度
+/*
+- redis字符串是一个任何时候都以'\0'结束，并且可以兼容二进制的字符串
+- 实现方式是在实际操作的字符串指针前面有一个描述该字符串信息的header
+- 为了节约内存，redis按照字符串长度，会使用不同的header结构体来存放信息
+- 这些结构体分别为sdshdr5, sdshdr8, sdshdr16, sdshdr32, sdshdr64，sdshdr*后面的数字即为该header能存放的字符串长度二进制位数，例如sdshdr8表示该结构体能容纳2^8-1长度的字符串
+- 外部在使用使用时候存储的实际是header中指向buf的指针
+- 所有header结构体，存放buf的前面一位肯定是flags，该变量存放当前header属于什么类型，使用了 `__attribute__ ((__packed__))`属性告诉编译器不要对齐，这样就可以使用s[-1]来简单的拿到flags，再根据flasgs，来获取header指针进行操作
+- 除了sdshdr5以外，其他header结构相似，len表示实际字符串长度，alloc表示实际分配的长度
+- sdshdr5只有一个存放len的变量，所以该结构不能预先分配内存
+*/
 
 typedef char *sds;
 
