@@ -35,6 +35,15 @@
 #ifndef _ZIPMAP_H
 #define _ZIPMAP_H
 
+// 压缩键值对存储
+// 为了节约内存，redis提供了zipmap这样的结构来存放key-value类型数据
+// zipmap实际上是一个char数组，使用约定好的格式来存放这些key-value
+// 下面是一个zipmap，存放"foo" => "bar", "hello" => "world"两个键值对
+// <zmlen><len>"foo"<len><free>"bar"<len>"hello"<len><free>"world"<ZIPMAP_END>
+// zmlen：1 byte：存放zipmap拥有的key-value对数量，最大为253，如果zmlen>=254，则表示该值无效，需要遍历整个zipmap才能拿到元素数量
+// len：1/5 byte：存放后面key/value的长度，第一个byte值<254则该byte就是接下去的长度，如果=254则接下去4 byte组成的unsinged int才是长度，如果=255，则表示到达zipmap尾部
+// free：1 byte：
+
 unsigned char *zipmapNew(void);
 unsigned char *zipmapSet(unsigned char *zm, unsigned char *key, unsigned int klen, unsigned char *val, unsigned int vlen, int *update);
 unsigned char *zipmapDel(unsigned char *zm, unsigned char *key, unsigned int klen, int *deleted);

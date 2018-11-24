@@ -162,8 +162,8 @@ typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
 
 /* API */
 dict *dictCreate(dictType *type, void *privDataPtr);                            // 创建一个空的hash表
-int dictExpand(dict *d, unsigned long size);                                    // 将hash表扩容到能容纳size的最小2次幂大小
-int dictAdd(dict *d, void *key, void *val);                                     // 增加键值对到hash表中，如果key已经错在，返回错误
+int dictExpand(dict *d, unsigned long size);                                    // 将hash表扩容到能容纳size的最小2次幂大小（只是初始化rehash的一些变量，rehash过程分步在每次操作该hash表过程中）
+int dictAdd(dict *d, void *key, void *val);                                     // 增加键值对到hash表中，如果key已经存在，返回错误
 dictEntry *dictAddRaw(dict *d, void *key);                                      // hash表增加元素的原始接口，只增加了一个对应key的entry到hash表中，但不对值进行设置，如果key已经存在返回NULL
 int dictReplace(dict *d, void *key, void *val);                                 // 更新hash表的key对应的value值，如果key不存在则插入一个新的，操作成功返回1，失败返回0
 dictEntry *dictReplaceRaw(dict *d, void *key);                                  // dictAddRaw的升级版，如果key存在，返回当前key对应的value，如果不存在，返回新插入的entry
