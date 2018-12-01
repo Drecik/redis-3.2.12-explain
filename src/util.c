@@ -331,6 +331,7 @@ int ll2string(char* dst, size_t dstlen, long long svalue) {
 /* Convert a string into a long long. Returns 1 if the string could be parsed
  * into a (non-overflowing) long long, 0 otherwise. The value will be set to
  * the parsed value when appropriate. */
+// 将字符串尝试转为整形，如果转换成功返回1，转换后的整形通过value返回。转换失败返回0
 int string2ll(const char *s, size_t slen, long long *value) {
     const char *p = s;
     size_t plen = 0;
