@@ -254,6 +254,7 @@ REDIS_STATIC int __quicklistDecompressNode(quicklistNode *node) {
     } while (0)
 
 /* Force node to not be immediately re-compresable */
+// 临时解压quicklistNode数据
 #define quicklistDecompressNodeForUse(_node)                                   \
     do {                                                                       \
         if ((_node) && (_node)->encoding == QUICKLIST_NODE_ENCODING_LZF) {     \
@@ -1099,6 +1100,7 @@ int quicklistCompare(unsigned char *p1, unsigned char *p2, int p2_len) {
 
 /* Returns a quicklist iterator 'iter'. After the initialization every
  * call to quicklistNext() will return the next element of the quicklist. */
+// 创建一个迭代器，该迭代器的方向通过direction指定，AL_START_HEAD/AL_START_TAIL
 quicklistIter *quicklistGetIterator(const quicklist *quicklist, int direction) {
     quicklistIter *iter;
 
@@ -1122,6 +1124,7 @@ quicklistIter *quicklistGetIterator(const quicklist *quicklist, int direction) {
 
 /* Initialize an iterator at a specific offset 'idx' and make the iterator
  * return nodes in 'direction' direction. */
+// 从index开始创建一个迭代器，方向由direction指定，AL_START_HEAD/AL_START_TAIL，如果index无效返回NULL
 quicklistIter *quicklistGetIteratorAtIdx(const quicklist *quicklist,
                                          const int direction,
                                          const long long idx) {
@@ -1140,6 +1143,7 @@ quicklistIter *quicklistGetIteratorAtIdx(const quicklist *quicklist,
 
 /* Release iterator.
  * If we still have a valid current node, then re-encode current node. */
+// 释放迭代器内存，如果当前迭代器指向了一个quicklistNode，则尝试重新压缩他
 void quicklistReleaseIterator(quicklistIter *iter) {
     if (iter->current)
         quicklistCompress(iter->quicklist, iter->current);
@@ -1168,8 +1172,9 @@ void quicklistReleaseIterator(quicklistIter *iter) {
  * Returns 0 when iteration is complete or if iteration not possible.
  * If return value is 0, the contents of 'entry' are not valid.
  */
+// 获取迭代器下一个元素，元素值通过entry返回
 int quicklistNext(quicklistIter *iter, quicklistEntry *entry) {
-    initEntry(entry);
+    initEntry(entry);   // 重新初始化变量
 
     if (!iter) {
         D("Returning because no iter!");
@@ -1212,8 +1217,8 @@ int quicklistNext(quicklistIter *iter, quicklistEntry *entry) {
         ziplistGet(entry->zi, &entry->value, &entry->sz, &entry->longval);
         return 1;
     } else {
-        /* We ran out of ziplist entries.
-         * Pick next node, update offset, then re-run retrieval. */
+        // zi为空，表示已经超出了该ziplist范围，获取下一个quicklistNode进行操作
+        // 重新压缩回正在操作的节点
         quicklistCompress(iter->quicklist, iter->current);
         if (iter->direction == AL_START_HEAD) {
             /* Forward traversal */
@@ -1227,6 +1232,7 @@ int quicklistNext(quicklistIter *iter, quicklistEntry *entry) {
             iter->offset = -1;
         }
         iter->zi = NULL;
+        // 设置初始值之后进行递归
         return quicklistNext(iter, entry);
     }
 }
@@ -1237,6 +1243,7 @@ int quicklistNext(quicklistIter *iter, quicklistEntry *entry) {
  * The original quicklist both on success or error is never modified.
  *
  * Returns newly allocated quicklist. */
+// 从orig中复制整一个quicklist
 quicklist *quicklistDup(quicklist *orig) {
     quicklist *copy;
 
@@ -1276,6 +1283,9 @@ quicklist *quicklistDup(quicklist *orig) {
  *
  * Returns 1 if element found
  * Returns 0 if element not found */
+// 获取quicklist中index为下标的元素的值，存储在entry中返回
+// index>=0表示从头开始，<0表示从尾部开始
+// 找到返回1，否则返回0
 int quicklistIndex(const quicklist *quicklist, const long long idx,
                    quicklistEntry *entry) {
     quicklistNode *n;
@@ -1327,12 +1337,12 @@ int quicklistIndex(const quicklist *quicklist, const long long idx,
     quicklistDecompressNodeForUse(entry->node);
     entry->zi = ziplistIndex(entry->node->zl, entry->offset);
     ziplistGet(entry->zi, &entry->value, &entry->sz, &entry->longval);
-    /* The caller will use our result, so we don't re-compress here.
-     * The caller can recompress or delete the node as needed. */
+    // 不立即把数据重新压缩回去，因为调用者可能会继续使用该解压后的数据或者删除该节点
     return 1;
 }
 
 /* Rotate quicklist by moving the tail element to the head. */
+// 旋转quicklist，将最后一个元素插入到头部
 void quicklistRotate(quicklist *quicklist) {
     if (quicklist->count <= 1)
         return;

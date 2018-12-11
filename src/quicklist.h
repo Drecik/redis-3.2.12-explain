@@ -78,22 +78,24 @@ typedef struct quicklist {
     unsigned int compress : 16; /* depth of end nodes not to compress;0=off */
 } quicklist;
 
+// quicklist迭代器
 typedef struct quicklistIter {
     const quicklist *quicklist;
     quicklistNode *current;
-    unsigned char *zi;
-    long offset; /* offset in current ziplist */
-    int direction;
+    unsigned char *zi;              // ziplist中当前的entry地址
+    long offset;                    // ziplist中当前entry的偏移量
+    int direction;                  // 迭代方向
 } quicklistIter;
 
+// quicklist中的一个元素，实际指向的是ziplist中的一个entry，及该entry的值
 typedef struct quicklistEntry {
     const quicklist *quicklist;
-    quicklistNode *node;
-    unsigned char *zi;
-    unsigned char *value;
-    long long longval;
-    unsigned int sz;
-    int offset;
+    quicklistNode *node;        // 当前quicklistNode
+    unsigned char *zi;          // ziplist当前的entry地址
+    unsigned char *value;       // ziplist中字符串的value值
+    long long longval;          // ziplist中整数值
+    unsigned int sz;            // ziplist中字符串的value长度
+    int offset;                 // ziplist中的offset
 } quicklistEntry;
 
 #define QUICKLIST_HEAD 0
@@ -160,16 +162,34 @@ void quicklistDelEntry(quicklistIter *iter, quicklistEntry *entry);
 int quicklistReplaceAtIndex(quicklist *quicklist, long index, void *data,
                             int sz);
 int quicklistDelRange(quicklist *quicklist, const long start, const long stop);
+
+// 创建一个迭代器，该迭代器的方向通过direction指定，AL_START_HEAD/AL_START_TAIL
 quicklistIter *quicklistGetIterator(const quicklist *quicklist, int direction);
+
+// 从index开始创建一个迭代器，方向由direction指定，AL_START_HEAD/AL_START_TAIL，如果index无效返回NULL
 quicklistIter *quicklistGetIteratorAtIdx(const quicklist *quicklist,
                                          int direction, const long long idx);
+
+// 获取迭代器下一个元素，返回0表示没有元素，否则获取下个元素成功
 int quicklistNext(quicklistIter *iter, quicklistEntry *node);
+
+// 释放迭代器内存，如果当前迭代器指向了一个quicklistNode，则尝试重新压缩他
 void quicklistReleaseIterator(quicklistIter *iter);
+
+// 从orig中复制整一个quicklist
 quicklist *quicklistDup(quicklist *orig);
+
+// 获取quicklist中index为下标的元素的值，存储在entry中返回
+// index>=0表示从头开始，<0表示从尾部开始
+// 找到返回1，否则返回0
 int quicklistIndex(const quicklist *quicklist, const long long index,
                    quicklistEntry *entry);
+
+// 下面两个函数没有被实现
 void quicklistRewind(quicklist *quicklist, quicklistIter *li);
 void quicklistRewindTail(quicklist *quicklist, quicklistIter *li);
+
+// 旋转quicklist，将最后一个元素插入到头部
 void quicklistRotate(quicklist *quicklist);
 int quicklistPopCustom(quicklist *quicklist, int where, unsigned char **data,
                        unsigned int *sz, long long *sval,
