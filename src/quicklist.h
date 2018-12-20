@@ -154,13 +154,23 @@ quicklist *quicklistAppendValuesFromZiplist(quicklist *quicklist,
 // 通过ziplist所有元素创建一个新的quicklist，会释放原来的ziplist
 quicklist *quicklistCreateFromZiplist(int fill, int compress,
                                       unsigned char *zl);
+
+// 在元素之后插入value
 void quicklistInsertAfter(quicklist *quicklist, quicklistEntry *node,
                           void *value, const size_t sz);
+
+// 在元素之前插入value
 void quicklistInsertBefore(quicklist *quicklist, quicklistEntry *node,
                            void *value, const size_t sz);
+
+// 删除指定元素，iter按照迭代方向返回下一个元素
 void quicklistDelEntry(quicklistIter *iter, quicklistEntry *entry);
+
+// 替换quicklist中index下标的元素，替换成功返回1，否则返回0
 int quicklistReplaceAtIndex(quicklist *quicklist, long index, void *data,
                             int sz);
+
+// 删除quicklist中一定范围的所有元素，删除成功返回1，失败返回0
 int quicklistDelRange(quicklist *quicklist, const long start, const long stop);
 
 // 创建一个迭代器，该迭代器的方向通过direction指定，AL_START_HEAD/AL_START_TAIL
@@ -196,7 +206,11 @@ int quicklistPopCustom(quicklist *quicklist, int where, unsigned char **data,
                        void *(*saver)(unsigned char *data, unsigned int sz));
 int quicklistPop(quicklist *quicklist, int where, unsigned char **data,
                  unsigned int *sz, long long *slong);
+
+// 返回quicklist总的元素个数
 unsigned int quicklistCount(quicklist *ql);
+
+// 比较p指向的ziplist的entry的内容与指定值相等，不等返回0，否则返回1
 int quicklistCompare(unsigned char *p1, unsigned char *p2, int p2_len);
 
 // 获取quicklistNode中的lzf原始数据
