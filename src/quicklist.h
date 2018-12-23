@@ -38,7 +38,7 @@
  * count: 16 bits, max 65536 (max zl bytes is 65k, so max count actually < 32k). 存放该节点的元素个数
  * encoding: 2 bits, RAW=1, LZF=2. 表示当前节点的数据是以什么编码的，RAW：原始数据，LZF：通过LZF压缩
  * container: 2 bits, NONE=1, ZIPLIST=2. 表示当前节点通过什么类型数据结构存储的，NONE：没有数据，ZIPLIST：通过ziplist存储
- * recompress: 1 bit, bool, 如果该值为true，表示只是临时存放的数据被解压了，需要再次被压缩
+ * recompress: 1 bit, bool, 如果该值为true，表示只是临时将数据解压用于使用，需要再次被压缩
  * attempted_compress: 1 bit, boolean, used for verifying during testing. 用于测试
  * extra: 12 bits, free for future use; pads out the remainder of 32 bits 暂未使用*/
 typedef struct quicklistNode {
