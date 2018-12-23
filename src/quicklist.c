@@ -1410,6 +1410,11 @@ void quicklistRotate(quicklist *quicklist) {
  * Return value of 0 means no elements available.
  * Return value of 1 means check 'data' and 'sval' for values.
  * If 'data' is set, use 'data' and 'sz'.  Otherwise, use 'sval'. */
+// 从quicklist头部/尾部pop元素，头部/尾部通过where控制，返回值根据是不是整形，通过data/sval返回。
+// 返回0表示没有元素，返回1表示pop元素成功，可以使用data/sval
+// 如果pop的元素不是整形，则会调用saver函数用来存储该元素的内容，返回值将会赋值给data，因为pop之后quicklist中该元素的内容将会被清除
+// 所以需要调用用户自定义的函数进行保存该内容
+// 如果返回1，且data为NULL，表示该元素是个整形，可以使用sval，否则的话data和sz表示当前的元素内容
 int quicklistPopCustom(quicklist *quicklist, int where, unsigned char **data,
                        unsigned int *sz, long long *sval,
                        void *(*saver)(unsigned char *data, unsigned int sz)) {
@@ -1458,6 +1463,7 @@ int quicklistPopCustom(quicklist *quicklist, int where, unsigned char **data,
 }
 
 /* Return a malloc'd copy of data passed in */
+// 自定义的saver函数，简单copy这一块内存
 REDIS_STATIC void *_quicklistSaver(unsigned char *data, unsigned int sz) {
     unsigned char *vstr;
     if (data) {
@@ -1471,6 +1477,7 @@ REDIS_STATIC void *_quicklistSaver(unsigned char *data, unsigned int sz) {
 /* Default pop function
  *
  * Returns malloc'd value from quicklist */
+// 默认quicklistpop函数（不可以自定义saver，其他跟quicklistPopCustom一样）
 int quicklistPop(quicklist *quicklist, int where, unsigned char **data,
                  unsigned int *sz, long long *slong) {
     unsigned char *vstr;
